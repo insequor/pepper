@@ -9,7 +9,7 @@ import wx
 
 #internal
 import ui
-from ui.common import printException
+from ui.common import printException, MsgRedirector, ErrorRedirector
 from ui.htmlpanel import SimplePanel as GUIPanel
 
 import cmdr
@@ -61,9 +61,8 @@ class TestApp ( wx.App ):
             global appDataFolder
             appDataFolder = 'C:\\_downloads\\_VMShared\\Projects\\GitHub_not\\pepper\\data\\'
             
-            if 0:# To Be Activated
-                sys.stdout = nsqrPy.wx.MsgRedirector ()
-                sys.stderr = nsqrPy.wx.ErrorRedirector ()
+            sys.stdout = MsgRedirector ()
+            sys.stderr = ErrorRedirector ()
         
             ui.logWindow = wx.Frame(None, -1, 'pepper - Log Window')
             ui.logWindow.Bind(wx.EVT_CLOSE, self.__onClosingLogWindow)
