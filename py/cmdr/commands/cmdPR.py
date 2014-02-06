@@ -39,6 +39,10 @@ class Command:
     
     def __options(self):
         options = ['enter pr number']
+        prNo, summary = getMantisPRFromBrowser(self.manager.applications.current)
+        if prNo:
+            options.append(str(prNo))
+            
         if 0:
             try:
                 #TODO: Triggering Ctrl+C messes up the keys for some reason
@@ -49,6 +53,8 @@ class Command:
                 options.append(str(selected))
             except:
                 pass
+        options.reverse()
+        print options
         return options
         
     options = property(__options)
@@ -63,13 +69,19 @@ class Command:
         webbrowser.open(url)
         
     def __pr_onenote(self, option):
-        print 'create onenote page for ' + option
+        prNo, summary = getMantisPRFromBrowser(self.manager.applications.current)
+        try:
+            if int(prNo) != int(option):
+                summary = ''
+        except:
+            summary = ''
+            
         one = self.manager.applications.MSOneNote()
         notebook = one.notebook('GTD Sandbox')
         section = notebook.section('PRs')
         page = section.create_new_page()
         content = page.content.replace('PRNUMBER', option)
-        content = content.replace('PRSUMMARY', 'summary comes here')
+        content = content.replace('PRSUMMARY', summary)
         page.content = content
         
     #--
@@ -78,7 +90,26 @@ class Command:
         self.__functions[name](option)
         return True
 
-
+def getMantisPRFromBrowser(app):
+        #IE Title         : 0119855: FEM Acoresp fails with no meaningful message - Mantis - Windows Internet Explorer
+        #FF Title        :  0119855: FEM Acoresp fails with no meaningful message - Mantis - Mozilla Firefox
+        #Chrome Title : 0119855: FEM Acoresp fails with no meaningful message - Mantis - Google Chrome
+        title = app.title
+        
+        #Title should have: <PRNO>:<PR SUmmary> - Mantis - Browser Name
+        try: prNo = int(title[:7])
+        except: return (None, None)
+        
+        if title[7] != ':':
+            return (None, None)
+            
+        pos = title.rfind(' - Mantis')
+        if pos <= 0:
+            return (None, None)
+            
+        prSummary = title[9: pos]
+        return prNo, prSummary
+        
 #=============================================================================
 #===
 #=============================================================================
