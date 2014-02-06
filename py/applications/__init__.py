@@ -16,6 +16,7 @@ __doc__  = '''
 
 #Currently active application
 current = None
+from msonenote import MSOneNote
 
 
 #

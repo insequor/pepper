@@ -32,7 +32,7 @@ class Command:
         self.__functions = {
             'prmantis': self.__pr_mantis
             , 'prmercurial': self.__pr_mercurial
-            #, 'pronenote': self.__pr_onenote
+            , 'pronenote': self.__pr_onenote
         }
         
         self.names = self.__functions.keys()
@@ -63,7 +63,14 @@ class Command:
         webbrowser.open(url)
         
     def __pr_onenote(self, option):
-        pass
+        print 'create onenote page for ' + option
+        one = self.manager.applications.MSOneNote()
+        notebook = one.notebook('GTD Sandbox')
+        section = notebook.section('PRs')
+        page = section.create_new_page()
+        content = page.content.replace('PRNUMBER', option)
+        content = content.replace('PRSUMMARY', 'summary comes here')
+        page.content = content
         
     #--
     def execute(self, name, option):
