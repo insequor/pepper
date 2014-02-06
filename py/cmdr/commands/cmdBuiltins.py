@@ -53,7 +53,7 @@ class Command:
     
     #---
     def __refresh(self):
-        self.manager.instance.refresh()
+        self.manager.refresh()
         
     #---
     def __showLogWindow(self):
