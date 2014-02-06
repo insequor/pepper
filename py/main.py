@@ -13,7 +13,11 @@ from ui.common import printException, MsgRedirector, ErrorRedirector
 from ui.htmlpanel import SimplePanel as GUIPanel
 
 import cmdr
+import applications
 
+print ui.getWindowText(0)
+applications.ui = ui
+print ui
 
 #=============================================================================
 #===
@@ -27,7 +31,7 @@ class SimplePanelFrame ( wx.Frame ):
         self.SetTransparent(188)
         manager = None         
         try:
-            manager = cmdr.Manager(ui, wx)
+            manager = cmdr.Manager(ui, wx, applications)
             manager.refresh()
         except:
             manager = None
@@ -37,7 +41,7 @@ class SimplePanelFrame ( wx.Frame ):
         self.SetSize((800, 450))
         self.Centre()
                
-        self.controller = ui.Controller(manager, self.panel)    
+        self.controller = ui.Controller(applications, manager, self.panel)    
     
     #---
     def afterCreated(self):

@@ -80,36 +80,6 @@ def getAppDataDir(allUsers=False):
         cd = sp.GetUserDataDir()
     return cd
     
-
-#---
-def setApplication(hwnd):
-    global application
-    if hwnd is None:
-        application = None
-        
-    wndText = gui.GetWindowText(hwnd)
-    wndClass = gui.GetClassName(hwnd)
-    #print wndText
-    #print wndClass
-    if wndClass == 'wndclass_desked_gsk' and wndText.find('Microsoft Visual C++'):
-        print 'MSVisualStudio'
-        from msvisualstudio import MSVisualStudio
-        application = MSVisualStudio(hwnd)
-    elif wndClass == 'OpusApp' and wndText.find('Microsoft Word'):
-        print 'MSWord'
-        from msword import MSWord
-        application = MSWord(hwnd)
-    elif wndClass == 'rctrl_renwnd32':
-        from msoutlook import MSOutlook
-        application = MSOutlook(hwnd)
-    else:
-        if 1:
-            print 'DefaultApplication'
-            print 'hwnd: ' + str(hwnd)
-            print 'wndClass: '  + wndClass
-            print 'wndText: ' + wndText
-        from defaultapplication import DefaultApplication
-        application = DefaultApplication(hwnd)
         
 #--- 
 def putInClipboard(text):

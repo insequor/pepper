@@ -64,11 +64,12 @@ class Manager (object):
         command = property(__getCurrentCommand, __setCurrentCommand)
             
     #--
-    def __init__(self, ui, wx):
+    def __init__(self, ui, wx, applications):
         object.__init__(self)
         
         self.ui = ui
         self.wx = wx
+        self.applications = applications
 
         #singleton instance.... I'm not sure if this is a good idea!
         Manager.instance = self

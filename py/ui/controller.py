@@ -77,7 +77,6 @@ class ControllerHandler:
         pass
 
 
-        
 #
 #
 #
@@ -436,13 +435,14 @@ class KeyInfo:
 class Controller (object):
     '''
     '''            
-    def __init__(self, manager, handler):
+    def __init__(self, applications, manager, handler):
         '''
         '''
         self.__commandState = CommandState(self)
         self.__optionState = OptionState(self)
         self.__state = None
         
+        self.applications = applications
         self.manager = manager
         self.handler = handler
         
@@ -529,7 +529,7 @@ class Controller (object):
         #print '__activateOnTimer'
         try:
             evt = args[1]
-            setApplication(evt.Window)
+            self.applications.setCurrent(evt.Window)
         except:
             printException()
 
