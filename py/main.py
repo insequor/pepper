@@ -54,8 +54,7 @@ class TestApp ( wx.App ):
         
         
     def OnInit (self):
-        #try:
-        if 1:
+        try:
             self.SetAppName('nsqrCommander')
             
             global appDataFolder
@@ -84,8 +83,7 @@ class TestApp ( wx.App ):
             self.__frame = SimplePanelFrame()
             self.__frame.Hide()
         
-        if 0:
-            #except:
+        except:
             self.__frame = wx.Frame(None, -1, 'FAILED!')
             logWnd = wx.TextCtrl(self.__frame, size=(0,150), style=wx.TE_MULTILINE)
             wx.Log_SetActiveTarget(wx.LogTextCtrl(logWnd))
@@ -119,7 +117,5 @@ class TestApp ( wx.App ):
 
 
 if __name__ == '__main__':
-    print 'main.py'
-    app = TestApp()
-    app.MainLoop()
-    print 'done'
+    TestApp().MainLoop()
+    
