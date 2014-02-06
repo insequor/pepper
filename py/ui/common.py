@@ -1,4 +1,5 @@
 #standard
+import sys
 
 #third party
 import wx
@@ -6,7 +7,8 @@ import wx
 #internal
 
 def printException():
-    print 'printException'
+    e = sys.exc_info ()
+    sys.excepthook  ( e[0], e[1], e[2] )
     
     
 def setApplication(wnd):

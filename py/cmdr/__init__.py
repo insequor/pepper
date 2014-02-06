@@ -4,6 +4,7 @@
 
 
 #standard
+import sys
 import pickle
 
 #third party
@@ -11,7 +12,10 @@ import pickle
 #to be wrapped
 
 #internal
-def printException(): print 'printException'
+def printException(): 
+    print 'here'
+    e = sys.exc_info ()
+    sys.excepthook  ( e[0], e[1], e[2] )
 
 __doc__ = \
 """
@@ -23,8 +27,8 @@ Commander module which defines the basic structure to define and manage commands
 #=============================================================================
 #---
 class Manager (object):
-    #-- Location for configuration files
-    configFolder = ''
+    #-- Location for command scripts are
+    commandsFolder = ''
     
     #
     commandModules = {}
@@ -60,8 +64,11 @@ class Manager (object):
         command = property(__getCurrentCommand, __setCurrentCommand)
             
     #--
-    def __init__(self):
+    def __init__(self, ui, wx):
         object.__init__(self)
+        
+        self.ui = ui
+        self.wx = wx
 
         #singleton instance.... I'm not sure if this is a good idea!
         Manager.instance = self
@@ -106,7 +113,8 @@ class Manager (object):
                     cmdClass = cmdPair[0]
                     cmd = cmdPair[1]
                     if not cmd:
-                        cmd = cmdClass()
+                        print 'trying to instantiate the command'
+                        cmd = cmdClass(self.ui, self.wx, self)
                         cmdPair[1] = cmd
                     names = cmd.names
                     for name in names:
@@ -119,7 +127,6 @@ class Manager (object):
                 except:
                     print 'Problem retrieving names from: %s' % str(cmd) 
                     printException()
-                    pass
             items.sort()
         return items
     
@@ -129,7 +136,7 @@ class Manager (object):
         Destroy all command instances so they can be re-created next time
         '''
         self.__cmdList = []
-        commands = getAvailableCommands(Manager.configFolder)
+        commands = getAvailableCommands(Manager.commandsFolder)
         for cmd in commands:
             self.addCommand(cmd)
         
@@ -178,7 +185,7 @@ def getAvailableCommands(iPath):
                 if failed:
                     print 'Can not load the command module: ' + name
                     printException()
-                 
+    print 'returning found commands', len(commands)             
     return commands
 
 #------------------------------------------------------------------------------

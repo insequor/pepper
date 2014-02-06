@@ -27,7 +27,7 @@ class SimplePanelFrame ( wx.Frame ):
         self.SetTransparent(188)
         manager = None         
         try:
-            manager = cmdr.Manager()
+            manager = cmdr.Manager(ui, wx)
             manager.refresh()
         except:
             manager = None
@@ -59,7 +59,8 @@ class TestApp ( wx.App ):
             
             global appDataFolder
             appDataFolder = 'C:\\_downloads\\_VMShared\\Projects\\GitHub_not\\pepper\\data\\'
-            
+         
+            cmdr.Manager.commandsFolder = 'C:\\_downloads\\_VMShared\\Projects\\GitHub_not\\pepper\\py\\cmdr\\commands\\'
             sys.stdout = MsgRedirector ()
             sys.stderr = ErrorRedirector ()
         
