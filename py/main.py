@@ -15,7 +15,6 @@ from ui.htmlpanel import SimplePanel as GUIPanel
 import cmdr
 import applications
 
-print ui.getWindowText(0)
 applications.ui = ui
 print ui
 
