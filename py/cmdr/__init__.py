@@ -20,6 +20,13 @@ def printException():
 __doc__ = \
 """
 Commander module which defines the basic structure to define and manage commands. 
+
+
+TODO
+-------------------------------------
+* Commands to add:
+    - remember: Remember a certain location in a document, application, url with a key word
+    - remind: set reminders for a certain time or duration
 """
 
 #=============================================================================
