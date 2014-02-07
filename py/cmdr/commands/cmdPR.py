@@ -32,7 +32,8 @@ TODO - OneNote
 #=============================================================================
 #===Configuration
 #=============================================================================
-#This command does not need any configuration parameters...
+notebook_name = 'PRs'
+section_name = 'Open'
 
 
 #=============================================================================
@@ -97,8 +98,8 @@ class Command:
             summary = ''
             
         one = self.manager.applications.MSOneNote()
-        notebook = one.notebook('GTD Sandbox')
-        section = notebook.section('PRs')
+        notebook = one.notebook(notebook_name)
+        section = notebook.section(section_name)
         titleStart = 'PR' + option
         prPage = None
         for page in section.pages:
