@@ -9,7 +9,26 @@ import webbrowser
 
 #internal
 
+__doc__ = '''
+PR related commands targeted to ease the work with PRs
 
+TODO - 
+-------------------
+* Remember the last entered PRs (keep a limit so list does not grow)
+
+TODO - Mantis
+-------------------
+
+TODO - Mercurial
+-------------------
+
+TODO - OneNote
+-------------------
+* Improve the way existing PR pages are found in OneNote, it should support 
+  0s at the beginning of PR number
+* Get the PR Information from Mantis
+
+'''
 #=============================================================================
 #===Configuration
 #=============================================================================
