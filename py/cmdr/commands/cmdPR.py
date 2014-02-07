@@ -9,6 +9,7 @@ import webbrowser
 
 #internal
 
+
 #=============================================================================
 #===Configuration
 #=============================================================================
@@ -79,10 +80,18 @@ class Command:
         one = self.manager.applications.MSOneNote()
         notebook = one.notebook('GTD Sandbox')
         section = notebook.section('PRs')
-        page = section.create_new_page()
-        content = page.content.replace('PRNUMBER', option)
-        content = content.replace('PRSUMMARY', summary)
-        page.content = content
+        titleStart = 'PR' + option
+        prPage = None
+        for page in section.pages:
+            if page.name.startswith(titleStart):
+                prPage = page
+                break
+        if not prPage:
+            prPage = section.create_new_page()
+            content = prPage.content.replace('PRNUMBER', option)
+            content = content.replace('PRSUMMARY', summary)
+            prPage.content = content
+        prPage.show()
         
     #--
     def execute(self, name, option):
