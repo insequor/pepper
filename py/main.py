@@ -16,7 +16,6 @@ import cmdr
 import applications
 
 applications.ui = ui
-print ui
 
 #=============================================================================
 #===
