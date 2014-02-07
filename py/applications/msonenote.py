@@ -53,6 +53,9 @@ class MSOneNoteNotebook (object):
             if section.name == name:
                 return section
     
+    def show(self):
+        '''calls NavigateTo on the OneNote application for this object'''
+        app.NavigateTo(self.data['ID'])
 #
 #
 class MSOneNoteSection (object):
@@ -73,7 +76,10 @@ class MSOneNoteSection (object):
         return pages
     pages = property(__get_pages)
     
-    
+    def show(self):
+        '''calls NavigateTo on the OneNote application for this object'''
+        app.NavigateTo(self.data['ID'])
+        
     def create_new_page(self):
         pageID = app.CreateNewPage(self.data['ID'])
         hierarchy = app.GetHierarchy(pageID, hsSelf)
@@ -92,14 +98,14 @@ class MSOneNotePage (object):
     name = property(__get_name)
     
     def __get_content(self):
-        print 'getting the content'
         return app.GetPageContent(self.data['ID'])
     def __set_content(self, value):
-        print 'setting the content'
         app.UpdatePageContent(value)
     content = property(__get_content, __set_content)
     
-    
+    def show(self):
+        '''calls NavigateTo on the OneNote application for this object'''
+        app.NavigateTo(self.data['ID'])
 #
 #  
 class MSOneNote (object):
@@ -122,7 +128,6 @@ class MSOneNote (object):
     
     def notebook(self, name):
         for notebook in self.notebooks:
-            print notebook.name
             if notebook.name == name:
                 return notebook
                 
