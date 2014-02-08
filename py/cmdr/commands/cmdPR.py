@@ -24,8 +24,6 @@ TODO - Mercurial
 
 TODO - OneNote
 -------------------
-* Improve the way existing PR pages are found in OneNote, it should support 
-  0s at the beginning of PR number
 * Get the PR Information from Mantis
 
 '''
@@ -34,7 +32,7 @@ TODO - OneNote
 #=============================================================================
 notebook_name = 'PRs'
 section_name = 'Open'
-
+max_recent_prs = 5
 
 #=============================================================================
 #===
@@ -57,13 +55,19 @@ class Command:
         }
         
         self.names = self.__functions.keys()
+        
+        self.recentPRs = []
     
     def __options(self):
         options = ['enter pr number']
+        
+        options = options + self.recentPRs
+        
         prNo, summary = getMantisPRFromBrowser(self.manager.applications.current)
         if prNo:
-            options.append(str(prNo))
-            
+            prNo = str(prNo)
+            if not prNo in self.recentPRs:
+                options.append(prNo) 
         if 0:
             try:
                 #TODO: Triggering Ctrl+C messes up the keys for some reason
@@ -75,7 +79,6 @@ class Command:
             except:
                 pass
         options.reverse()
-        print options
         return options
         
     options = property(__options)
@@ -115,7 +118,12 @@ class Command:
         
     #--
     def execute(self, name, option):
-        print ('pr(%s, %s)' %(name, option))
+        option = option.strip()
+        if not option in self.recentPRs:
+            self.recentPRs.append(option)
+            if len(self.recentPRs) > max_recent_prs:
+                self.recentPRs = self.recentPRs[1:]
+                
         self.__functions[name](option)
         return True
 
