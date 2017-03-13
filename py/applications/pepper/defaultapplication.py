@@ -1,27 +1,29 @@
-
-#standard
-
-#thirparty
+import wx
 import win32gui as gui
 import win32con as con
 import win32clipboard as clipboard
 
-
-import wx
-from SendKeys import SendKeys
-
-#internal
-
-
-
-
-
+import SendKeys
 
 #=============================================================================
 #===
 #=============================================================================
 
 class DefaultApplication(object):
+    #---
+    def __getSelectedText(self):
+        clipboard.OpenClipboard()
+        newData = ''
+        newFormat = 0
+        newFormat = clipboard.EnumClipboardFormats(newFormat)
+        print newFormat        
+        if 1 or newFormat == con.CF_UNICODETEXT or newFormat == con.CF_TEXT:
+            print 'gettting data'
+            newData = clipboard.GetClipboardData(newFormat)
+        clipboard.CloseClipboard()
+        print 'cv: ' 
+        print newData
+        return newData
     def __getSelectedTextWX(self):
         text = ''
         SendKeys.SendKeys('^c')
@@ -62,7 +64,11 @@ class DefaultApplication(object):
         If hwnd is None, current window will be retrieved
         '''
         object.__init__(self)
-        self.hwnd = hwnd
+        
+        if hwnd:
+            self.hwnd = hwnd
+        else:
+            self.hwnd = win32gui.GetActiveWindow()
         
         
     #---

@@ -11,6 +11,7 @@ User interface components for Commander
  
 #standard
 import os
+import sys 
 import getpass
 import time
 
@@ -46,6 +47,16 @@ application = None
 #
 logWindow = None
 
+#--
+def printException():
+    """
+    Prints the exception information in case exception is thrown in a
+    try/catch block
+    """
+    e = sys.exc_info ()
+    sys.excepthook  ( e[0], e[1], e[2] )
+
+    
 #--
 def getConfigDir(allUsers=False):
     '''

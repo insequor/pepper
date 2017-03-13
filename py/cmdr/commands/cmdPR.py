@@ -15,6 +15,9 @@ PR related commands targeted to ease the work with PRs
 TODO - 
 -------------------
 * Remember the last entered PRs (keep a limit so list does not grow)
+* Store Visual Studio Bookmarks and Break Points in PR notes
+* Have "switch" functionality, so when the developer switches to a PR (or a story) VS automatically 
+  updates the breakpoints and bookmarks from the notes.
 
 TODO - Mantis
 -------------------
@@ -25,6 +28,7 @@ TODO - Mercurial
 TODO - OneNote
 -------------------
 * Get the PR Information from Mantis
+* Search existing PR in all notebook, not only in open PRs section. 
 
 '''
 #=============================================================================
@@ -37,7 +41,7 @@ max_recent_prs = 5
 #=============================================================================
 #===
 #=============================================================================
-class Command:
+class _Command:
     author = 'Ozgur Aydin Yuksel'
     info = '''Short cuts for mantis PRs'''
     

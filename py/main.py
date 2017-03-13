@@ -60,9 +60,9 @@ class TestApp ( wx.App ):
             self.SetAppName('nsqrCommander')
             
             global appDataFolder
-            appDataFolder = 'C:\\_downloads\\_VMShared\\Projects\\GitHub_not\\pepper\\data\\'
+            appDataFolder = '../data/'
          
-            cmdr.Manager.commandsFolder = 'C:\\_downloads\\_VMShared\\Projects\\GitHub_not\\pepper\\py\\cmdr\\commands\\'
+            cmdr.Manager.commandsFolder = './cmdr/commands/'
             sys.stdout = MsgRedirector ()
             sys.stderr = ErrorRedirector ()
         

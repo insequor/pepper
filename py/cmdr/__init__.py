@@ -27,6 +27,16 @@ TODO
 * Commands to add:
     - remember: Remember a certain location in a document, application, url with a key word
     - remind: set reminders for a certain time or duration
+    - accents: accented characters in Turkish and Romanian
+    - clipboard: remember old text in clipboard, good especially for code editing
+    - gtd: time management commands
+    - pages: switch between documents in a single application, like pages in VS
+
+* Commands to think about:
+    - tt: time tracking
+          it is quite tricky to write a good one
+* Commands NOT to add:
+    - window: open, close, minimize windows
 """
 
 #=============================================================================
