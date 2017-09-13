@@ -1,4 +1,5 @@
 ENV
+libs
 distribute-0.6.15.tar.gz
 *.pyc
 *.pyo
