@@ -57,7 +57,18 @@ class Command:
         content = note_page.content 
         content = content.replace("!!TITLE", option[:40])
         content = content.replace("!!NOTE", option)
-        content = content.replace("!!CONTEXT", "Context information is not automatically added yet")
+
+        context = ""
+        if 1: #Add the clipboard text if available
+            wx = self.wx 
+            if wx.TheClipboard.Open():
+                if wx.TheClipboard.IsSupported(wx.DataFormat(wx.DF_TEXT)):
+                    data = wx.TextDataObject()
+                    wx.TheClipboard.GetData(data)
+                    text = data.GetText()
+                    context += "Clipbard Text: " + text 
+                wx.TheClipboard.Close()
+        content = content.replace("!!CONTEXT", context)
         note_page.content = content
         note_page.show()
 
