@@ -53,6 +53,9 @@ def setCurrent(hwnd):
     elif wndClass == 'rctrl_renwnd32':
         from msoutlook import MSOutlook
         current = MSOutlook(hwnd)
+    elif wndClass == 'Framework::CFrame':
+        from msonenote import MSOneNote
+        current = MSOneNote(hwnd)
     else:
         from defaultapplication import DefaultApplication
         current = DefaultApplication(hwnd)
