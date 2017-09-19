@@ -1,3 +1,4 @@
+# coding=utf-8
 #=============================================================================
 #=== Ozgur Aydin Yuksel, 2014 (c)
 #=============================================================================
@@ -48,6 +49,18 @@ class Command:
 
     def __shared_note(self, option):
         print 'Shared Note: ', option
+        one = self.manager.applications.MSOneNote()
+        
+        notebook = one.notebook("Notebook")
+        section = notebook.section("Ozgur")
+        note_page = section.create_new_page()
+        content = note_page.content 
+        content = content.replace("!!TITLE", option[:40])
+        content = content.replace("!!NOTE", option)
+        content = content.replace("!!CONTEXT", "Context information is not automatically added yet")
+        note_page.content = content
+        note_page.show()
+
         
     #--
     def execute(self, name, option):

@@ -141,11 +141,15 @@ class MSOneNote (DefaultApplication):
 if __name__ == '__main__':
     print 'MSOneNote.py'
     one = MSOneNote()
-    notebook = one.notebook("One")
-    section = notebook.section("Welcome")
-    page = section.page("COMAPI")
-    content = page.content  
-    page.content = content.replace("was", "still is")
+    notebook = one.notebook("Notebook")
+    section = notebook.section("Ozgur")
+    #page = section.page("COMAPI")
+    page = section.create_new_page()
+    content = page.content.replace ("!!DATE", "This will be page title")
+    content = content.replace ("!!NOTE", "This will be the note part")
+    content = content.replace ("!!CONTEXT", "This will be the context part")  
+    page.content = content
+    page.show()
                 
                 
     
