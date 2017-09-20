@@ -66,7 +66,7 @@ class Command:
                     data = wx.TextDataObject()
                     wx.TheClipboard.GetData(data)
                     text = data.GetText()
-                    context += "Clipbard Text: " + text 
+                    context += "Clipboard Text: " + text 
                 wx.TheClipboard.Close()
         content = content.replace("!!CONTEXT", context)
         note_page.content = content
