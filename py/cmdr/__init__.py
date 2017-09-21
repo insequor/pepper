@@ -131,7 +131,7 @@ class Manager (object):
                     cmdClass = cmdPair[0]
                     cmd = cmdPair[1]
                     if not cmd:
-                        print 'trying to instantiate the command'
+                        #print 'trying to instantiate the command'
                         cmd = cmdClass(self.ui, self.wx, self)
                         cmdPair[1] = cmd
                     names = cmd.names
@@ -197,13 +197,13 @@ def getAvailableCommands(iPath):
                         except: 
                             failed = True
                     if not failed:
-                        exec 'try: commands.append(myModule.Command)\nexcept: print  "No Command found in %s" % str(myModule)' 
+                        #exec 'try: commands.append(myModule.Command)\nexcept: print  "No Command found in %s" % str(myModule)'
+                        exec 'try: commands.append(myModule.Command)\nexcept: pass' 
                 except:
                     failed = True
                 if failed:
                     print 'Can not load the command module: ' + name
                     printException()
-    print 'returning found commands', len(commands)             
     return commands
 
 #------------------------------------------------------------------------------

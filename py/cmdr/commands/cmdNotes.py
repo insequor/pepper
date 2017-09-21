@@ -9,6 +9,7 @@
 import webbrowser
 
 #internal
+from cmdNotes_settings import Settings
 
 __doc__ = '''
 '''
@@ -31,28 +32,18 @@ class Command:
         self.wx = wx
         self.manager = manager
         
-        self.__functions = {
-              'note': self.__note
-            , 'life lesson': self.__life_lesson
-            , 'shared note': self.__shared_note 
-        }
-        
-        self.names = self.__functions.keys()
+        self.names = Settings['notes'].keys()
         
     options = []
-        
-    def __note(self, option):
-        print 'Note: ', option
-        
-    def __life_lesson(self, option):
-        print 'Life Lesson: ', option
-
-    def __shared_note(self, option):
-        print 'Shared Note: ', option
+    
+    #--
+    def execute(self, name, option):
+        option = option.strip()
+        noteSettings = Settings['notes'][name]
         one = self.manager.applications.MSOneNote()
         
-        notebook = one.notebook("Notebook")
-        section = notebook.section("Ozgur")
+        notebook = one.notebook(noteSettings['notebook'])
+        section = notebook.section(noteSettings['section'])
         note_page = section.create_new_page()
         content = note_page.content 
         content = content.replace("!!TITLE", option[:40])
@@ -71,12 +62,6 @@ class Command:
         content = content.replace("!!CONTEXT", context)
         note_page.content = content
         note_page.show()
-
-        
-    #--
-    def execute(self, name, option):
-        option = option.strip()
-        self.__functions[name](option)
         return True
 
 #=============================================================================
