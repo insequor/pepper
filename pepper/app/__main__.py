@@ -31,7 +31,7 @@ def main():
     msg = ''
     while 'exit' not in msg:
         msg = connection.recv()
-        logger.debug(f"    Received: {msg}")
+        # logger.debug(f"    Received: {msg}")
         # for app in apps:
         #    app.onMessage(msg)
         # Send the received message to all children

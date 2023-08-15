@@ -7,6 +7,7 @@ from multiprocessing.connection import PipeConnection
 
 # Third Party Imports 
 import keyboard 
+import webview
 
 # Internal Imports
 
@@ -37,7 +38,6 @@ def onTriggerRelease(connection: PipeConnection):
     
 
 def listenKeyboard(connection: PipeConnection):
-    logging.basicConfig(level="DEBUG")
     logger = logging.getLogger("QUICKACCESS")
     logger.debug(f"Start listening keyboard")
     keyboard.add_hotkey(TRIGGER_HOTKEY, onTriggerPress, args=(connection,), suppress=True, trigger_on_release=False)
