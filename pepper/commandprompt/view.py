@@ -33,6 +33,13 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
             This function is executed in a new thread 
         """
         window.hide()
+
+        # NOTE: Alternatively we can use this thread to listen the keyboard events instead 
+        # of using a dedicated process for listenKeyboard function. It gives us an additional 
+        # benefit that both key handling and the view are in the same process. But I am keeping
+        # it as it is for now since different processes force us to define a cleaner interaction
+        # betweent them
+
         while True:
             msg = connection.recv()
             logger.debug(f"    Received: {msg}")
