@@ -11,7 +11,4 @@ This represents the main pepper application. It is there to act as a central hub
 A local webserver. I am not sure if we will need this yet but it looks like a good idea to be able to present information to the user.
 
 ### Command Prompt
-An interface to interact with the application. The idea is we use a hotkey to show a quick access UI. This way we try to keep the user within the application they are working on and minimize the context switch 
-
-### Web View
-This is the application UI to show for the quick access
+Show a simple command prompt based UI for main interface 
