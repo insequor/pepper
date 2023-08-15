@@ -12,7 +12,7 @@ from multiprocessing.connection import PipeConnection
 @runtime_checkable
 class App(Protocol):
     """Represents the interface to define an application to work with pepper"""
-    def start(self, connectionToSend: PipeConnection):
+    def start(self, connection: PipeConnection):
         """ Start the application """
 
     def stop(self):

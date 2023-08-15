@@ -9,7 +9,6 @@ import os
 
 # Internal Imports
 from pepper import commandprompt as cp
-from pepper import quickaccess as qa
 from pepper import webserver as ws
 from pepper.app import App 
 
@@ -21,7 +20,6 @@ def main():
 
     connection, childConnection = multiprocessing.Pipe()
     apps: list[App] = [
-        qa.App(),
         ws.App(),
         cp.App()
     ]

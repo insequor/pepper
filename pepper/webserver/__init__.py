@@ -15,7 +15,7 @@ from nicegui import ui
 
 class App:
 
-    def start(self, connectionToSend: PipeConnection):
+    def start(self, connection: PipeConnection):
         """ Start the application """
         logger = logging.getLogger("WEBSERVER")
         logger.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
