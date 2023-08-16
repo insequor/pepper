@@ -1,0 +1,28 @@
+{
+    "include": [
+    ],
+    
+    "exclude": [
+      "**/__pycache__",
+    ],
+  
+    "ignore": [
+    ],
+  
+    "defineConstant": {
+      "DEBUG": true
+    },
+  
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+    "reportUnusedExpression": false, 
+    "reportOptionalCall": false,
+    "reportOptionalMemberAccess": false,
+    "reportInvalidStringEscapeSequence": false,
+    "reportSelfClsParameterName": false,
+    "reportUnusedImport": false,
+    "reportUnboundVariable": false,
+  
+    "pythonVersion": "3.10",
+    "pythonPlatform": "Windows"
+  }
