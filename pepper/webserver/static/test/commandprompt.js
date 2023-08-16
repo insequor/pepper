@@ -1,0 +1,1 @@
+console.log("commandprompt.js is loaded and more")

@@ -5,13 +5,18 @@ import logging
 import multiprocessing
 from multiprocessing.connection import PipeConnection
 import os 
+from pathlib import Path
 
 # Third Party Imports
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from uvicorn import Config, Server
 from nicegui import ui
 
 # Internal Imports
+from . import routers
+
 
 class App:
 
@@ -23,7 +28,7 @@ class App:
 
         server_ip = "127.0.0.1"
         server_port = 8080 
-        config = Config(f"{__name__}:app", host=server_ip, port=server_port, log_level="debug")
+        config = Config(f"{__name__}:app", host=server_ip, port=server_port, log_level="debug", reload=True)
         instance = UvicornServer(config=config)
         instance.start()
         self.server = instance 
@@ -50,6 +55,16 @@ class UvicornServer(multiprocessing.Process):
 
     
 app = FastAPI()
+app.mount("/static", StaticFiles(directory=Path(r"D:\Workdir\personal\pepper", "pepper", "webserver", "static")), name="static")
+app.include_router(routers.router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get('/')

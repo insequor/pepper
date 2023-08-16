@@ -28,8 +28,6 @@
 </head>
 
 <body>
-
-
     <h1>JS API Example</h1>
     <p id='pywebview-status'><i>pywebview</i> is not ready</p>
 
@@ -57,38 +55,6 @@
         function cancel() {
             pywebview.api.cancel().then(showResponse)
         }
-
-        function doHeavyStuff() {
-            var btn = document.getElementById('heavy-stuff-btn')
-
-            pywebview.api.doHeavyStuff().then(function (response) {
-                showResponse(response)
-                btn.onclick = doHeavyStuff
-                btn.innerText = 'Perform a heavy operation'
-            })
-
-            showResponse({ message: 'Working...' })
-            btn.innerText = 'Cancel the heavy operation'
-            btn.onclick = cancelHeavyStuff
-        }
-
-        function cancelHeavyStuff() {
-            pywebview.api.cancelHeavyStuff()
-        }
-
-        function getRandomNumber() {
-            pywebview.api.getRandomNumber().then(showResponse)
-        }
-
-        function greet() {
-            var name_input = document.getElementById('name_input').value;
-            pywebview.api.sayHelloTo(name_input).then(showResponse)
-        }
-
-        function catchException() {
-            pywebview.api.error().catch(showResponse)
-        }
-
     </script>
 </body>
 

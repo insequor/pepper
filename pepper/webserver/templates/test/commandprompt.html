@@ -1,0 +1,51 @@
+$def with (options, timestamp)
+<html>
+    <head>
+        <style>
+            .container {
+                background-color: #666666;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            This is just to test the code for command prompt view. This server will not support it
+        </div>
+        <div class="container" id="container" tabindex="0" >
+            <font color="#FFFFFF" size=+4>
+                <div id="command">
+                    Current
+                </div>
+
+                <div id="options">
+                    $for option in options:
+                        <div>$option</div>
+                </div>
+            </font>
+        </div>
+    </body>
+    <script type="text/javascript" src="/static/test/commandprompt.js?$timestamp"></script>
+    <script>
+        var command = "";
+        console.log("hi there");
+        let element = document.querySelector('#container');
+        let commandElement = document.querySelector('#command'); 
+        element.focus();
+        element.addEventListener('keyup', function (e) {
+            console.log("keyup", e.key, e);
+            e.preventDefault();
+        });
+        element.addEventListener('keydown', function (e) {
+            console.log("keydown", e.key, e);
+            e.preventDefault();
+            updateCommand(e);
+        });
+        
+        function updateCommand(e) {
+            command += e.key;
+            commandElement.innerHTML = command;
+        }
+
+    </script>
+</html>
