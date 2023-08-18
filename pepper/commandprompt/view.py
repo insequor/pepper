@@ -13,8 +13,8 @@ import time
 import webview
 
 # Internal Imports
-
-
+from pepper.commandprompt import commander 
+from pepper import applications
 
 class Api:
     window: webview.Window 
@@ -24,6 +24,11 @@ class Api:
         self.__hideWhenRequested = False 
         self.__ignoreShowHideRequest = False 
         self.__logger = logging.getLogger("COMMANDPROMPT")
+        commander.Manager.commandsFolder = Path("pepper", "commands")
+        self.commander = commander.Manager()
+        self.commander.refresh()
+        # TODO: 
+        _ = self.commander.getOptions()
 
     def _showRequested(self):
         if self.__ignoreShowHideRequest:
@@ -42,11 +47,13 @@ class Api:
             return 
         
         if self.__hideWhenRequested:
-            self.execute()
+            self.execute("N/A", "N/A")
         else:
             self.__ignoreShowHideRequest = True 
          
     def _show(self):
+        applications.setCurrent(None)
+        
         self.window.show()
         # NOTE: Something is broken, window.hidden is not reliable
         self.__visible = True 
@@ -60,8 +67,10 @@ class Api:
         self.__hideWhenRequested = False 
         self.__ignoreShowHideRequest = False 
 
-    def execute(self):
-        self.__logger.debug("EXECUTE COMMAND")
+    def execute(self, value: str, selection: str):
+        self.__logger.debug(f"EXECUTE COMMAND: '{value}' '{selection}'")
+        self.commander.command = selection 
+        self.commander.command.execute(selection, "")
         self._hide()
         response = {
             'message': 'Execute Command'
@@ -91,8 +100,9 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
     with open(Path(__file__).parent / "commands.html", "r") as file:
         html = file.read()
 
+    url = "http://localhost:8080/test/commandprompt"
     api = Api()
-    window = webview.create_window('API example', html=html, js_api=api)
+    window = webview.create_window('API example', url=url, js_api=api, hidden=True)
     api.window = window 
     window.events.closed += onClosed
     
@@ -102,8 +112,6 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
         
             This function is executed in a new thread 
         """
-        window.hide()
-        
         # NOTE: Alternatively we can use this thread to listen the keyboard events instead 
         # of using a dedicated process for listenKeyboard function. It gives us an additional 
         # benefit that both key handling and the view are in the same process. But I am keeping
@@ -123,7 +131,7 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
                     window.destroy()
                     return
     
-    webview.start(func=startCallback, args=(connection, window))
+    webview.start(func=startCallback, args=(connection, window), debug=True)
 
 
 if __name__ == "__main__":

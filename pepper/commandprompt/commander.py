@@ -15,6 +15,7 @@ from typing import Any
 #Third Party Imports
 
 #Internal Imports
+from pepper import applications
 
 
 __doc__ = \
@@ -94,10 +95,11 @@ class Manager(Singleton):
         return [cmd for cmd, _ in self.__cmdList]
             
     #--
-    def __init__(self, ui=None, wx=None, applications=None):
+    def __init__(self, ui=None, wx=None, applications_deprecate=None):
         
         self.ui = ui
         self.wx = wx
+        # TODO: Deprecate this 
         self.applications = applications
 
         #- Mapping to the names to the commands

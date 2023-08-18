@@ -10,10 +10,16 @@
 #=============================================================================
 #===
 #=============================================================================
+# Standard Imports
 import codecs
 import logging
 import os
 from pathlib import Path
+
+# Third Party Imports
+
+# Internal Imports
+from pepper import applications
 
 
 database = {}
@@ -58,10 +64,11 @@ class Command:
     def execute(self, name, option):
         result = False
         try:
-            assert(self.manager.applications.current)
+            assert(applications.current)
             if name in self.__database:
                 val = self.__database[name]
-                self.manager.applications.current.selectedText = val
+                logging.debug(f"ACCENTS.execute {name} => {val}")
+                applications.current.selectedText = val
                 result = True
         except Exception as error:
             logging.exception(error)

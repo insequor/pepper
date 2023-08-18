@@ -4,6 +4,7 @@
 import logging
 from multiprocessing import Process
 from multiprocessing.connection import PipeConnection
+import os 
 
 # Third Party Imports 
 import keyboard 
@@ -38,15 +39,17 @@ def onTriggerRelease(connection: PipeConnection):
     
 
 def listenKeyboard(connection: PipeConnection):
+    logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
     logger = logging.getLogger("QUICKACCESS")
     logger.debug(f"Start listening keyboard")
     keyboard.add_hotkey(TRIGGER_HOTKEY, onTriggerPress, args=(connection,), suppress=True, trigger_on_release=False)
     keyboard.add_hotkey(TRIGGER_HOTKEY, onTriggerRelease, args=(connection,), suppress=True, trigger_on_release=True)
     keyboard.add_hotkey(QUIT_HOTKEY, onQuit, args=(connection,), suppress=True)
     while True:
-        # Wait for the next event.
+        # Wait for the next event. We will get any of the keyboard events. Our registered callbacks
+        # will be called before read_event() returns
         _ = keyboard.read_event()
-    
+        
 
 if __name__ == "__main__":
     pass 
