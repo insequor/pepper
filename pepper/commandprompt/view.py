@@ -11,9 +11,13 @@ import time
 
 # Third Party Imports 
 import webview
+import webview.platforms.winforms
+from pywinauto.controls.hwndwrapper import HwndWrapper
+
 
 # Internal Imports
 from pepper.commandprompt import commander 
+from pepper.commandprompt.controller import ControllerHandler, Controller
 from pepper import applications
 
 class Api:
@@ -41,7 +45,6 @@ class Api:
             # It means we want it to be in auto-hide mode
             self.__hideWhenRequested = True 
             
-
     def _hideRequested(self):
         if self.__ignoreShowHideRequest:
             return 
@@ -84,6 +87,37 @@ class Api:
         }
         return response
 
+class WebViewControllerHandler(ControllerHandler):
+    
+    def __init__(self, window: webview.Window):
+        self.window = window 
+    
+    def onControllerMessage(self, msg):
+        match msg:
+            case ControllerHandler.activated:
+                self.window.show()
+                self.window.on_top = True 
+                logging.debug(f"WINDOW GUI {self.window.gui} ({type(self.window.gui)})")
+            case ControllerHandler.deactivated:
+                self.window.hide()
+            case _:
+                logging.debug(f"WebViewControllerHandler.onControllerMessage({msg})")
+        
+    def onTextChanged(self, text, lastEntry):
+        logging.debug(f"CH.onTextChanged({text}, {lastEntry})")
+        
+    def onOptionsChanged(self, options):
+        logging.debug(f"CH.onOptionsChanged({options})")
+        
+    def onOptionSelectionChanged(self, options, selection):
+        logging.debug(f"CH.onOptionSelectionChanged({options}, {selection})")
+        
+
+# TODO: Fix this, we keep it so objects do not die
+class Data:
+    controller: Controller 
+    controllerHandler: ControllerHandler
+
 
 def startWebView(connection: PipeConnection, urlToLoad: str):
     logging.basicConfig(level="DEBUG")
@@ -97,15 +131,21 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
         except Exception:
             pass  # If the pipe is already closed we do not care
 
+    # TODO: When we show the UI we should make sure that it has the focus
+    # Otherwise key events are still send to the old window. This way we do not 
+    # need to suppress the key events
     with open(Path(__file__).parent / "commands.html", "r") as file:
         html = file.read()
 
     url = "http://localhost:8080/test/commandprompt"
     api = Api()
-    window = webview.create_window('API example', url=url, js_api=api, hidden=True)
+    # window = webview.create_window('API example', url=url, js_api=api, hidden=True)
+    window = webview.create_window('API example', html=html, hidden=True)
+    Data.controllerHandler = WebViewControllerHandler(window)
+    Data.controller = Controller(Data.controllerHandler)
+
     api.window = window 
     window.events.closed += onClosed
-    
     
     def startCallback(connection: PipeConnection, window: webview.Window):
         """This method is called by the webview.start as art of the thread
@@ -118,11 +158,9 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
         # it as it is for now since different processes force us to define a cleaner interaction
         # betweent them
 
-        showMessageIsReceived = False 
-        hideOnHideMessage = False 
         while True:
             msg = connection.recv()
-            match msg:
+            match msg["key"]:
                 case "ShowCommandPrompt":
                     api._showRequested()
                 case "HideCommandPrompt":
@@ -130,8 +168,11 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
                 case "exit":
                     window.destroy()
                     return
-    
-    webview.start(func=startCallback, args=(connection, window), debug=True)
+                case "ProcessKey":
+                    Data.controller.processKey(msg["data"])
+
+
+    webview.start(func=startCallback, args=(connection, window), debug=False)
 
 
 if __name__ == "__main__":

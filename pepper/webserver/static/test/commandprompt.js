@@ -76,7 +76,7 @@ window.onload = function() {
     let optionsElement = document.querySelector("#options");
     var current = -1;
     var currentOptions = [];
-    commandElement.focus();
+    // commandElement.focus();
     commandElement.addEventListener('keydown', function (e) {
         return;
         console.log("keydown", e.key, e.which, commandElement.value);

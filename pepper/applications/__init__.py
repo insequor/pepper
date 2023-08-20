@@ -35,7 +35,7 @@ def getOneNoteApp():
 #
 #
 #
-def setCurrent(hwnd):
+def setCurrent(hwnd = None):
     global current
     if hwnd is None:
         hwnd = ctypes.windll.user32.GetForegroundWindow()
