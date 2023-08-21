@@ -13,12 +13,14 @@ import time
 import webview
 import webview.platforms.winforms
 from pywinauto.controls.hwndwrapper import HwndWrapper
-
+from pywinauto.findwindows    import find_window
+from pywinauto.win32functions import BringWindowToTop
 
 # Internal Imports
 from pepper.commandprompt import commander 
 from pepper.commandprompt.controller import ControllerHandler, Controller
 from pepper import applications
+
 
 class Api:
     window: webview.Window 
@@ -28,11 +30,14 @@ class Api:
         self.__hideWhenRequested = False 
         self.__ignoreShowHideRequest = False 
         self.__logger = logging.getLogger("COMMANDPROMPT")
-        commander.Manager.commandsFolder = Path("pepper", "commands")
+        commander.Manager.commandsFolder = Path(".", "pepper", "commands")
         self.commander = commander.Manager()
+        self.__logger.debug(f"COMMAND Object is {self.commander}")
         self.commander.refresh()
         # TODO: 
-        _ = self.commander.getOptions()
+        options = self.commander.getOptions()
+        self.__logger.debug(f"OPTIONS: {options}")
+        self.__logger.debug(f"({self})")
 
     def _showRequested(self):
         if self.__ignoreShowHideRequest:
@@ -62,7 +67,21 @@ class Api:
         self.__visible = True 
         self.__hideWhenRequested = False  # We need the second show request to switch to sticky auto-hide mode
         self.__ignoreShowHideRequest = False
+        Data.controller.activate(None, None)
 
+        def callback(result):
+            print(f"===== CALLBACK: {result}")
+
+        self.window.evaluate_js(
+            """
+            new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    console.log('Whaddup!');
+                    onShowWindow();
+                }, 100);
+            });
+            """, callback)
+            
     def _hide(self):
         self.window.hide()
         # NOTE: Something is broken, window.hidden is not reliable
@@ -70,10 +89,24 @@ class Api:
         self.__hideWhenRequested = False 
         self.__ignoreShowHideRequest = False 
 
+    def getAllOptions(self):
+        self.__logger.debug(f"Get All Options: {self.commander} ({self})")
+        self.commander.refresh()
+        options = self.commander.getOptions() 
+        self.__logger.debug(f"OPTIONS: {options}")
+        self.__logger.debug(f"CURRENT COMMAND: {self.commander.command}")
+        response = {
+            'message': 'Get All Options',
+            "options": options
+        }
+        return response
+    
     def execute(self, value: str, selection: str):
         self.__logger.debug(f"EXECUTE COMMAND: '{value}' '{selection}'")
+        self.__logger.debug(f"COMMAND Object is {self.commander}")
         self.commander.command = selection 
-        self.commander.command.execute(selection, "")
+        Data.controller.execute(selection, None)
+        # self.commander.command.execute(selection, "")
         self._hide()
         response = {
             'message': 'Execute Command'
@@ -90,28 +123,117 @@ class Api:
 class WebViewControllerHandler(ControllerHandler):
     
     def __init__(self, window: webview.Window):
-        self.window = window 
+        self.__window = window 
+        self.__title = "Pepper"
+        self.__lastEntry = ""
+        self.__commandLine = ""
+        self.__listLines = []
+        self.__selectedIdx = -1
+        self.__startIdx = -1 
     
     def onControllerMessage(self, msg):
-        match msg:
-            case ControllerHandler.activated:
-                self.window.show()
-                self.window.on_top = True 
-                logging.debug(f"WINDOW GUI {self.window.gui} ({type(self.window.gui)})")
-            case ControllerHandler.deactivated:
-                self.window.hide()
-            case _:
-                logging.debug(f"WebViewControllerHandler.onControllerMessage({msg})")
+        logging.debug(f"CH.onControllerMessage: ({msg})")
+        try:
+            self.__commandLine = ""
+            self.__lastEntry = ""
+            match msg:
+                case ControllerHandler.activated:
+                    self.__window.show()
+                    logging.debug("... show")
+                    logging.debug(f"... before on top update {self.__window.on_top}")
+                    if not self.__window.on_top:
+                        self.__window.on_top = True
+                    logging.debug("... set on top")
+                    if 0:
+                        
+                        window = find_window(title="Pepper Quick Access")
+                        logging.debug(f"   found window: {window}")
+                        BringWindowToTop(window)
+                    self.loadHtml()
+                    logging.debug("... load html")
+                case ControllerHandler.deactivated:
+                    self.__window.hide()
+                case _:
+                    logging.debug(f"CH.onControllerMessage: ({msg})")
+        except Exception: 
+            logging.exception("... exception")
+        finally:    
+            logging.debug(f"... DONE CH.onControllerMessage: ({msg})")
         
-    def onTextChanged(self, text, lastEntry):
-        logging.debug(f"CH.onTextChanged({text}, {lastEntry})")
-        
+    def onTextChanged(self, command, option):
+        logging.debug(f"CH.onTextChanged({command}, {option})")
+        if option:
+            self.__commandLine = option
+            self.__title = command + "..."
+        else:
+            self.__commandLine = command 
+            self.__title = "Start Typing..."
+        self.__lastEntry = self.__commandLine 
+        self.loadHtml()
+
     def onOptionsChanged(self, options):
-        logging.debug(f"CH.onOptionsChanged({options})")
-        
+        # logging.debug(f"CH.onOptionsChanged({options})")
+        self.__listLines = options 
+        self.__startIdx = -1
+        self.loadHtml()
+
     def onOptionSelectionChanged(self, options, selection):
         logging.debug(f"CH.onOptionSelectionChanged({options}, {selection})")
+        self.__selectedIdx = selection 
+        self.loadHtml()
+
+    def __replaceSelected(self, text, selected):
+        '''
+            This method can be improved using re module but currently works just fine
+            It does sort of case insensitive replacement. Search is based on lower 
+            characters. It preserves the original cases from found string while replacing
+        '''
+        start = text.lower().find(selected.lower())
+        if (start == -1):
+            return text
+        end = start + len(selected)
+        return text[:start] + '<font color=#0000FF>' + text[start:end] + '</font>' + text[end:]
+
+    @property 
+    def html(self) -> str:
+        # Title first
+        text = '<font size="+6">' + self.__title + '<hr><br>'
         
+        # Then the user entry line
+        if self.__commandLine != '':
+            text += self.__commandLine
+        else:
+            text += '<br>'
+        text +='</font>'
+        
+        #end the options
+        replText = '<font color=#0000FF>' + self.__lastEntry + '</font>'
+        start = self.__startIdx
+        if self.__selectedIdx < start:
+            start = self.__selectedIdx
+        if start == -1:
+            start = 0
+        count = 9
+        if self.__selectedIdx - start > count - 1:
+            start = self.__selectedIdx - count + 1
+        self.__startIdx = start
+        end = start + count
+        if end >= len(self.__listLines):
+            end = len(self.__listLines)
+         
+        for idx in range(start, end):
+            item = self.__listLines[idx].replace(' ', ' ')
+            item = self.__replaceSelected(item, self.__lastEntry)
+            if idx == self.__selectedIdx:
+                item = '<font color=#00FF00>' + item + '</font>'
+            text +=  '<br>' + item
+        if end < len(self.__listLines) :
+            text += '<br>...'
+        return text 
+
+    def loadHtml(self):
+        self.__window.load_html(self.html)
+
 
 # TODO: Fix this, we keep it so objects do not die
 class Data:
@@ -127,7 +249,7 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
     def onClosed():
         logger.debug("Window is closed, requesting to end the application")
         try:
-            connection.send('exit')
+            connection.send({"key": "exit"})
         except Exception:
             pass  # If the pipe is already closed we do not care
 
@@ -137,42 +259,45 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
     with open(Path(__file__).parent / "commands.html", "r") as file:
         html = file.read()
 
-    url = "http://localhost:8080/test/commandprompt"
-    api = Api()
-    # window = webview.create_window('API example', url=url, js_api=api, hidden=True)
-    window = webview.create_window('API example', html=html, hidden=True)
+    window = webview.create_window("Pepper Quick Access", html="", hidden=True, on_top=True)
     Data.controllerHandler = WebViewControllerHandler(window)
     Data.controller = Controller(Data.controllerHandler)
-
-    api.window = window 
+    commander.manager.connection = connection
     window.events.closed += onClosed
     
+    if Data.controller.keyboard is not None:
+        logger.debug("--- Starting to listen the Keyboard")
+        Data.controller.keyboard.start()
+        Data.controller.keyboard.wait()
+
     def startCallback(connection: PipeConnection, window: webview.Window):
         """This method is called by the webview.start as art of the thread
         
             This function is executed in a new thread 
         """
-        # NOTE: Alternatively we can use this thread to listen the keyboard events instead 
-        # of using a dedicated process for listenKeyboard function. It gives us an additional 
-        # benefit that both key handling and the view are in the same process. But I am keeping
-        # it as it is for now since different processes force us to define a cleaner interaction
-        # betweent them
-
         while True:
             msg = connection.recv()
+            logger.debug(f"    Received: {msg}")
+            # for app in apps:
+            #    app.onMessage(msg)
+            # Send the received message to all children
             match msg["key"]:
-                case "ShowCommandPrompt":
-                    api._showRequested()
-                case "HideCommandPrompt":
-                    api._hideRequested()
-                case "exit":
-                    window.destroy()
-                    return
-                case "ProcessKey":
-                    Data.controller.processKey(msg["data"])
+                case "activate":
+                    commandState, evt = msg["data"]
+                    Data.controller.activate(commandState, evt)
+                case "cancel":
+                    Data.controller.cancel()
+                case "execute":
+                    complatedEntry, key = msg["data"]
+                    Data.controller.execute(complatedEntry, key)
 
+            logger.debug(f"    After handling the message: {msg}")
 
     webview.start(func=startCallback, args=(connection, window), debug=False)
+
+    if Data.controller.keyboard:    
+        Data.controller.keyboard.join()    
+        logger.debug("--- Done listening to the Keyboard") 
 
 
 if __name__ == "__main__":

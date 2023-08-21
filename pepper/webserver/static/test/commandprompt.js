@@ -71,92 +71,132 @@ class KeyInfo {
 
 }
 
+var commandElement;
+var optionsElement;
+var current = -1;
+var allOptions = [];
+var currentOptions = [];
+
+
 window.onload = function() {
-    let commandElement = document.querySelector("#command");
-    let optionsElement = document.querySelector("#options");
-    var current = -1;
-    var currentOptions = [];
-    // commandElement.focus();
+
+    commandElement = document.querySelector("#command");
+    optionsElement = document.querySelector("#options");
+    commandElement.focus();
+    console.log(commandElement);
     commandElement.addEventListener('keydown', function (e) {
-        return;
         console.log("keydown", e.key, e.which, commandElement.value);
-        currentOptions = getFilteredOptions(commandElement.value);
-        updateOptions();
+        // currentOptions = getFilteredOptions(commandElement.value);
+        // updateOptions();
     });
     commandElement.addEventListener('keyup', function (e) {
         console.log("keyup", e.key, e.which, commandElement.value);
         handleSpecialKey(e, commandElement.value);
     });
 
-    function getFilteredOptions(value) {
-        var options = [];
-        if(!value){
-            options = Array.from(allOptions);
-        }
-        else {
-            for(let option of allOptions){
-                if(option.toLowerCase().indexOf(value.toLowerCase()) >= 0){
-                    options.push(option);
-                }
-            }
-        }
-        options.sort();
-        if(options != [] && value) {
-            current = 0;
-        }
-        else {
-            current = -1;
-        }
-        return options;
+    window.addEventListener('pywebviewready', function() {
+        console.log("pywebview is ready");
+    });
+
+};
+
+
+function onShowWindow() {
+    console.log("this function is called from python");
+    current = -1;
+    commandElement.value = "";
+    commandElement.focus();
+    getAllOptions();
+}
+
+function getFilteredOptions(value) {
+    var options = [];
+    if(!value){
+        options = Array.from(allOptions);
     }
-    function updateOptions() {
-        // Use the given value to filter out the options and show the remaining ones only
-        const options_ = Array.from(currentOptions);
-        if(current >= 0 && current < options_.length) {
-            options_[current] = "* " + options_[current];
+    else {
+        for(let option of allOptions){
+            if(option.toLowerCase().indexOf(value.toLowerCase()) >= 0){
+                options.push(option);
+            }
         }
-        optionsElement.innerHTML = options_.join("<br/>");
     }
-    function handleSpecialKey(key, value) {
-        switch(key.which) {
-            case KeyCodes.ARROW_DOWN: {
-                console.log("Select the next item");
-                if (current == currentOptions.length - 1){
-                    current = 0;
-                }
-                else {
-                    current += 1;
-                }
-                break;
+    options.sort();
+    if(options != [] && value) {
+        current = 0;
+    }
+    else {
+        current = -1;
+    }
+    return options;
+}
+
+function updateOptions() {
+    // Use the given value to filter out the options and show the remaining ones only
+    const options_ = Array.from(currentOptions);
+    if(current >= 0 && current < options_.length) {
+        options_[current] = "* " + options_[current];
+    }
+    optionsElement.innerHTML = options_.join("<br/>");
+}
+
+
+function handleSpecialKey(key, value) {
+    switch(key.which) {
+        case KeyCodes.ARROW_DOWN: {
+            console.log("Select the next item", current, currentOptions);
+            if (current == currentOptions.length - 1){
+                current = 0;
             }
-            case KeyCodes.ARROW_UP: {
-                console.log("Select the previous item");
-                if(current <= 0) {
-                    current = currentOptions.length - 1;
-                }
-                else {
-                    current -= 1;
-                }
-                
-                break;
+            else {
+                current += 1;
             }
-            case KeyCodes.ESCAPE: {
-                exitCommand();
-                return;
-            }
-            case KeyCodes.ENTER: {
-                executeCommand(value, currentOptions[current]);
-                return;
-            }
-            default: {
-                currentOptions = getFilteredOptions(commandElement.value);
-            }
+            break;
         }
+        case KeyCodes.ARROW_UP: {
+            console.log("Select the previous item", current, currentOptions);
+            if(current <= 0) {
+                current = currentOptions.length - 1;
+            }
+            else {
+                current -= 1;
+            }
+            
+            break;
+        }
+        case KeyCodes.ESCAPE: {
+            exitCommand();
+            return;
+        }
+        case KeyCodes.ENTER: {
+            executeCommand(value, currentOptions[current]);
+            return;
+        }
+        default: {
+            currentOptions = getFilteredOptions(commandElement.value);
+        }
+    }
+    updateOptions();
+}
+
+
+function getAllOptions() {
+        
+    function updateOptionsFirstTime(msg) {
+        allOptions = msg.options;
+        console.log("Get options", allOptions);
+        currentOptions = getFilteredOptions(); 
         updateOptions();
     }
-    currentOptions = getFilteredOptions(); 
-    updateOptions();
-};
+    
+    console.log("Get all options");
+    try{
+        pywebview.api.getAllOptions().then(updateOptionsFirstTime)
+    }
+    catch(error) {
+        showResponse(error);
+    }
+}
 
 function showResponse(response) {
     console.log(response);

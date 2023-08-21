@@ -28,15 +28,20 @@ def main():
         app.start(childConnection)
 
     # Here we loop till we recive the close request
-    msg = ''
-    while 'exit' not in msg:
+    while True:
         msg = connection.recv()
-        # logger.debug(f"    Received: {msg}")
+        logger.debug(f"    Received: {msg}")
         # for app in apps:
         #    app.onMessage(msg)
         # Send the received message to all children
         connection.send(msg)
 
+        match msg["key"]:
+            case "exit":
+                break 
+            case _:
+                pass 
+        
     logger.debug("close request is received, we are ending the application")
 
     # We already send the exit message in above loop. Normally the apps should be listening and honoring 

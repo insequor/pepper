@@ -1,4 +1,4 @@
-$def with (options, timestamp)
+$def with (timestamp)
 <html>
     <head>
         <style>
@@ -30,9 +30,5 @@ $def with (options, timestamp)
     </body>
     <script type="text/javascript" src="/static/test/commandprompt.js?$timestamp"></script>
     <script>
-        const allOptions = [];
-        $for option in options:
-            allOptions.push("$option");
-        console.log(allOptions);
     </script>
 </html>

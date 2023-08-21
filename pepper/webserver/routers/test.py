@@ -43,10 +43,7 @@ async def _():
 async def _():
     """Testing the UI for the command prompt"""
     template: WebTemplate = WebTemplate()
-    commander.Manager.commandsFolder = Path("pepper", "commands")
-    commander.manager.refresh()
-    options = commander.manager.getOptions()
-    return HTMLTemplateResponse(template.test.commandprompt(options, time.time())) 
+    return HTMLTemplateResponse(template.test.commandprompt(time.time())) 
     
 
 if __name__ == "__main__":

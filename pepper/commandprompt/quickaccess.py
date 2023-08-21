@@ -30,15 +30,17 @@ def onTriggerPress(connection: PipeConnection):
     logger = logging.getLogger("QUICKACCESS")
     connection.send({"key": "ShowCommandPrompt"})
     logger.debug(f"{TRIGGER_HOTKEY} was pressed!")
+    return True
     
 
 def onTriggerRelease(connection: PipeConnection):
     logger = logging.getLogger("QUICKACCESS")
     connection.send({"key": "HideCommandPrompt"})
     logger.debug(f"{TRIGGER_HOTKEY} was released!")
-    
+    return True     
 
 def listenKeyboard(connection: PipeConnection):
+    return 
     logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
     logger = logging.getLogger("QUICKACCESS")
     logger.debug(f"Start listening keyboard")
@@ -51,7 +53,7 @@ def listenKeyboard(connection: PipeConnection):
         # Wait for the next event. We will get any of the keyboard events. Our registered callbacks
         # will be called before read_event() returns
         event = keyboard.read_event(suppress=False)
-        connection.send({"key": "ProcessKey", "data": event})
+        # connection.send({"key": "ProcessKey", "data": event})
         
 
 if __name__ == "__main__":

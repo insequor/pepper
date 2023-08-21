@@ -3,21 +3,20 @@
 #=============================================================================
 
 # Standard Imports
+from dataclasses import dataclass 
 import logging 
+from pathlib import Path 
+from typing import Any 
 
 # Third Party Imports
 import win32con 
-import keyboard 
-from keyboard import KeyboardEvent
-from pywinauto import win32_hooks
-# from pywinauto.win32_hooks import KeyboardEvent
-
+from pynput import keyboard 
 import win32gui
 from pywinauto.controls.hwndwrapper import HwndWrapper
 
 # Internal Imports
 from pepper import applications 
-from .commander import Manager
+from .commander import Manager, manager
 
 
 __doc__ = """
@@ -32,6 +31,57 @@ __doc__ = """
 #=============================================================================
 #===Messages to be send...
 #=============================================================================
+
+
+@dataclass(kw_only=True)
+class KeyboardEvent:
+    KeyID: int 
+    Ascii: str 
+
+
+class KeyboardListener(keyboard.Listener):
+    def __init__(self):
+        self.KeyDown = None 
+        self.KeyUp = None 
+
+        def win32EventFilter(msg, data):
+            return self.win32EventFilter(msg, data)
+        
+        super().__init__(
+            win32_event_filter=win32EventFilter,
+            suppress=False
+        ) 
+
+    def win32EventFilter(self, msg=None, data=None):
+        """ Return True if you want to process the event, otherwise False """
+        propagate: tuple[bool, Any] | bool = True 
+        key = self._event_to_key(msg, data.vkCode)  #type: ignore
+        match key:
+            case keyboard.KeyCode():
+                ascii = key.char if key.char is not None else ""
+            case keyboard.Key.space:
+                ascii = " "
+            case _:
+                ascii = "" 
+        evt = KeyboardEvent(KeyID=data.vkCode, Ascii=ascii)  
+        logging.debug(f"KEYBOARD ({msg} {evt} {key})")
+        match msg:
+            case win32con.WM_KEYDOWN:
+                if self.KeyDown:
+                    propagate = self.KeyDown(evt)
+            case win32con.WM_KEYUP:
+                if self.KeyUp:
+                    propagate = self.KeyUp(evt)
+            case win32con.WM_SYSKEYDOWN | win32con.WM_SYSKEYUP:
+                # This is received with windows key
+                pass 
+            case _:
+                logging.debug(f"   Unknown Keyboard Event: {msg}")
+                return
+             
+        if not propagate:
+            self.suppress_event()  # type: ignore (It looks like this method is only available for win32)
+        
 
 class ControllerHandler:
     # Message identifiers which are sent to controller handlers
@@ -134,7 +184,7 @@ class BaseState:
             if len(entry) > len(self.__entry):
                 oldOptions = self.options 
             else:
-                oldOptions = self.controller.manager.getOptions()
+                oldOptions = manager.getOptions()
             self.__entry = entry
             
             newOptions = []
@@ -159,13 +209,15 @@ class BaseState:
     
     def execute(self, key):
         try: 
-            self.controller.execute(self.complatedEntry, key.evt)
+            # self.controller.execute(self.complatedEntry, key.evt)
+            manager.sendMessage("execute", (self.complatedEntry, key))
         except Exception: 
             logging.exception(f"Failed to execute the action: {self.complatedEntry}")
             
     def cancel(self):
         try: 
-            self.controller.cancel()
+            manager.sendMessage("cancel", None)
+            # self.controller.cancel()
         except Exception as error: 
             logging.exception(error)
             
@@ -236,15 +288,16 @@ class CommandState (BaseState):
             When command state is activated it should get the command names from manager
             and update the options list
         '''
+        logging.debug("CommandState.activate()")
         super().activate(command)
         assert(command == None)
-        assert(self.controller.manager.command == None)
+        assert(manager.command == None)
         
         self.onKeyDown = self.__tKeyDown
         self.onKeyUp = self.__tKeyUp
         
         try:
-            self.options = self.controller.manager.getOptions()
+            self.options = manager.getOptions()
         except Exception as error:
             logging.exception(error)
         
@@ -365,49 +418,8 @@ class OptionState (BaseState):
 #
 #
 #
-class KeyInfo:
-    modifiers: dict[int, bool] = {
-        win32con.VK_LSHIFT:False, 
-        win32con.VK_RSHIFT:False,
-        win32con.VK_LMENU:False,
-        win32con.VK_RMENU:False,
-        win32con.VK_LCONTROL:False,
-        win32con.VK_RCONTROL:False
-    }
-                 
-    autoComplate = [
-        *keyboard.key_to_scan_codes("right"), 
-        *keyboard.key_to_scan_codes("tab"), 
-        *keyboard.key_to_scan_codes("end")]
-    
-    previous = [*keyboard.key_to_scan_codes("up")]
-    
-    next = [*keyboard.key_to_scan_codes("down")]
-    
-    back = [*keyboard.key_to_scan_codes("left"), *keyboard.key_to_scan_codes("backspace")]
-           
-    ignored = [*keyboard.key_to_scan_codes("home"), *keyboard.key_to_scan_codes("return")]
-    
-    activation = keyboard.key_to_scan_codes("caps lock")[0]
-    
-    cancel = keyboard.key_to_scan_codes("escape")[0]
-    
-    enter = keyboard.key_to_scan_codes("return")[0]
-    
-    @classmethod
-    def hasModifiers(cls):
-        for key in KeyInfo.modifiers:
-            if KeyInfo.modifiers[key]:
-                return True
-        return False
-        
-    def __init__(self, evt: keyboard.KeyboardEvent):
-        self.evt = evt
-        self.id = evt.scan_code
-        self.chr = evt.name
-        
 
-class KeyInfo_:
+class KeyInfo:
     modifiers = {win32con.VK_LSHIFT:0, 
                  win32con.VK_RSHIFT:0,
                  win32con.VK_LMENU:0,
@@ -431,8 +443,6 @@ class KeyInfo_:
     
     enter = win32con.VK_RETURN
     
-    keyToId: dict[str, int] = {key: value for value, key in win32_hooks.Hook.ID_TO_KEY.items()}
-
     @classmethod
     def hasModifiers(cls):
         for key in KeyInfo.modifiers:
@@ -440,10 +450,10 @@ class KeyInfo_:
                 return True
         return False
         
-    def __init__(self, evt: win32_hooks.KeyboardEvent):
+    def __init__(self, evt: KeyboardEvent):
         self.evt = evt
-        self.id = self.keyToId[evt.current_key]
-        self.chr = evt.current_key                
+        self.id = evt.KeyID
+        self.chr = evt.Ascii
         
 #=============================================================================
 #===
@@ -459,26 +469,32 @@ class Controller:
         self.__optionState = OptionState(self)
         self.__state = None
         
-        self.manager = Manager()
+        Manager.commandsFolder = Path(".", "pepper", "commands")
+        manager.refresh()
+
         self.handler = handler
-        
-        self.__hookManager = None  # win32_hooks.Hook()                    
+        self.keyboard_focused = None
+        self.__hookManager = KeyboardListener()                    
         if self.__hookManager:
-            self.__hookManager.handler = self.processKey
-            self.__hookManager.hook(keyboard=True, mouse=False)
-            # self.__hookManager.KeyDown = self.__onKeyDown
-            # self.__hookManager.KeyUp = self.__onKeyUp
+            # self.__hookManager.handler = self.processKey
+            # self.__hookManager.hook(keyboard=True, mouse=False)
+            self.__hookManager.KeyDown = self.__onKeyDown
+            self.__hookManager.KeyUp = self.__onKeyUp
             # self.__hookManager.HookKeyboard()
         
         self.__inExecution = False
         
+    @property 
+    def keyboard(self) -> KeyboardListener | None :
+        return self.__hookManager
+
     #---
     def __del__(self):
         if self.__hookManager:
-            self.__hookManager.unhook_keyboard()
+            self.__hookManager.stop()
     
     #---
-    def __onKeyUp(self, evt):
+    def __onKeyUp(self, evt: KeyboardEvent):
         '''
         Key Up event is received for each key press of user. We have following cases:
             * Just return if we are in execution
@@ -502,7 +518,7 @@ class Controller:
         return True
         
     #---    
-    def __onKeyDown(self, evt):
+    def __onKeyDown(self, evt: KeyboardEvent):
         '''
         Key Down event is received for all key downs from user. We have following cases:
             * Just return if we are in execution
@@ -521,39 +537,19 @@ class Controller:
         if self.__state:
             return self.__state.onKeyDown(key)
         elif key.id == KeyInfo.activation:
-            try:
-                # self.keyboard_focused = HwndWrapper(win32gui.GetFocus())
-                self.keyboard_focused = HwndWrapper(win32gui.GetForegroundWindow())
-                logging.debug(f"ACTIVE: Focused element: {self.keyboard_focused}")
-            except Exception:
-                logging.exception("could not get focus element")
-                self.keyboard_focused = None 
-            self.activate(self.__commandState, evt)
+            # self.activate(self.__commandState, evt)
+            manager.sendMessage("activate", (None, None))
             return False
-        else:
-            retval = True
-        return retval
+        return True
 
-    def processKey(self, evt: KeyboardEvent):
-        # logging.debug(f"Process Key {evt.event_type} {evt.pressed_key} {evt.current_key}")
-        # logging.debug(f"Process Key {evt.event_type} {evt.pressed_key} {evt.current_key}")
-        # return False
-        match evt.event_type:
-            case "up":
-                allowDefault = self.__onKeyUp(evt)
-            case "down":
-                allowDefault = self.__onKeyDown(evt)
-            case _:
-                raise ValueError(f"Unknown keyboard event: {evt}")
-        
     #---
     def cancel(self):
         '''
         '''
         try:
             self.__state = None
-            self.manager.command = None
-            self.manager.lastWindowHandle = -1
+            manager.command = None
+            manager.lastWindowHandle = -1
             #TODO: self.handler.deactivated()
             if self.keyboard_focused:
                 logging.debug(f"CANCEL: try to put the focus back {self.keyboard_focused}")
@@ -571,30 +567,51 @@ class Controller:
     def activate(self, state, evt):
         # TODO: wx.CallLater(1, self.__activateOnTimer, state, evt)
         self.__activateOnTimer(state, evt)
+        logging.debug("after __activateOnTimer")
 
     #---
     def __activateOnTimer(self, *args, **kw):
+        logging.debug("__activateOnTimer")
         try:
             applications.setCurrent()
         except Exception as error:
             logging.exception(error)
 
         state = args[0]
+        if state is None:
+            state = self.__commandState
+            try:
+                # self.keyboard_focused = HwndWrapper(win32gui.GetFocus())
+                self.keyboard_focused = HwndWrapper(win32gui.GetForegroundWindow())
+                logging.debug(f"ACTIVE: Focused element: {self.keyboard_focused}")
+            except Exception:
+                logging.exception("could not get focus element")
+                self.keyboard_focused = None 
+
         assert(state)
         if self.__state:
             self.__state.deactivate()
         self.__state = state
-        self.__state.activate(self.manager.command)
+        logging.debug(f"Controller.activate({state})")
+        self.__state.activate(manager.command)
         # TODO: How this worked? self.handler.activated(self.__state)
         self.handler.onControllerMessage(ControllerHandler.activated)
-
+        logging.debug("DONE WITH ACTIVATE")
     #---
     def execute(self, entry, evt):
         # TODO: wx.CallLater(1, self.__executeOnTimer, entry, evt)
         self.__executeOnTimer(entry, evt)
-   
+        # timer = threading.Timer(1, self.__executeOnTimer, args=(entry, evt))
+        # timer.start()
+
     #---
     def __executeOnTimer(self, *args, **kw):
+        logging.debug(f"EXEcUTE COMMAND {args} {kw}")
+        try:
+            if self.keyboard_focused is not None and self.keyboard_focused.handle is not None:
+                win32gui.SetForegroundWindow(self.keyboard_focused.handle)
+        except Exception:
+            logging.exception("Could not set the foreground object")
         self.__inExecution = True
         try:
             deactivate = True
@@ -605,15 +622,15 @@ class Controller:
             commandName = self.__commandState.complatedEntry
             optionName = self.__optionState.complatedEntry
             
-            if self.manager.command:
+            if manager.command:
                 #print 'This was already in option state, so direct execution'
-                assert (entry == optionName)
-                self.manager.command.execute(commandName, optionName)
+                # assert (entry == optionName)
+                manager.command.execute(commandName, entry)
             else:
                 #print 'This was in command state, we first need to get the command'
                 if entry != '':
-                    self.manager.command = entry
-                    cmd = self.manager.command
+                    manager.command = entry
+                    cmd = manager.command
                 else:
                     cmd = None
                 if cmd:
@@ -635,10 +652,11 @@ class Controller:
             logging.exception(error)
             
         if deactivate:
-            self.__state.deactivate()
-            self.__state = None
-            self.manager.command = None
-            self.manager.lastWindowHandle = -1
+            if self.__state:
+                self.__state.deactivate()
+                self.__state = None
+            manager.command = None
+            manager.lastWindowHandle = -1
             # TODO: self.handler.deactivated()
             self.handler.onControllerMessage(ControllerHandler.deactivated)
 
