@@ -48,7 +48,6 @@ def CDATA(text):
 # Generate and cache the type information for the OneNote COM object
 # client.gencache.EnsureDispatch("0EA692EE-BB50-4E3C-AEF0-356D91732725")
 app = client.Dispatch('OneNote.Application')
-print(app)
 
 # Takes in an object and returns a dictionary of its values
 def parseAttributes(obj: ElementTree.Element):
@@ -200,7 +199,19 @@ class MSOneNoteNotebook (object):
 class MSOneNote (DefaultApplication):
     def __init__(self, hwnd = None):
         DefaultApplication.__init__(self, hwnd)
-        
+
+        # Com interface will represent all the instances of the application. Actually, there is only 
+        # one application, there are multiple windows. Given hwnd refers to the handle for the window
+        # TODO: What is the relation between the window handles and the hwnd we receive here?
+        #       We can make sure that MSOneNote current page/current section etc can return the selected 
+        #       window
+        pass 
+    
+    @property 
+    def app(self):
+        # TODO: We should avoid using a global variable for the app
+        return app 
+    
     @property
     def notebooks(self) -> list[MSOneNoteNotebook]:
         hierarchy = app.GetHierarchy("", client.constants.hsNotebooks)
