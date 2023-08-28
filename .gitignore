@@ -5,3 +5,4 @@ distribute-0.6.15.tar.gz
 *.pyo
 *_settings_local.py
 Pipfile.lock
+ignore

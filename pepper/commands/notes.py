@@ -4,12 +4,14 @@
 #=============================================================================
 
 #standard
+import logging 
 
 #thirdparty
-import webbrowser
 
 #internal
-from notes_settings import Settings
+from pepper import ui 
+from pepper.commands.notes_settings import Settings
+from pepper.applications.msonenote import MSOneNote
 
 __doc__ = '''
 '''
@@ -28,11 +30,8 @@ class Command:
     
     #--
     def __init__(self, ui, wx, manager):
-        self.ui = ui
-        self.wx = wx
         self.manager = manager
-        
-        self.names = Settings['notes'].keys()
+        self.names = list(Settings['notes'])
         
     options = []
     
@@ -40,29 +39,33 @@ class Command:
     def execute(self, name, option):
         option = option.strip()
         noteSettings = Settings['notes'][name]
-        one = self.manager.applications.MSOneNote()
+        one = MSOneNote()
         
         notebook = one.notebook(noteSettings['notebook'])
         section = notebook.section(noteSettings['section'])
         note_page = section.create_new_page()
-        content = note_page.content 
-        content = content.replace("!!TITLE", option[:40])
-        content = content.replace("!!NOTE", option)
-
+        
         context = ""
-        if 1: #Add the clipboard text if available
-            wx = self.wx 
-            if wx.TheClipboard.Open():
-                if wx.TheClipboard.IsSupported(wx.DataFormat(wx.DF_TEXT)):
-                    data = wx.TextDataObject()
-                    wx.TheClipboard.GetData(data)
-                    text = data.GetText()
-                    context += "Clipboard Text: " + text 
-                wx.TheClipboard.Close()
-        content = content.replace("!!CONTEXT", context)
+        if 0: # TODO: Add the clipboard text if available
+            clipboardText = ui.getClipboardText()
+            if clipboardText:
+                context = f"Clipboard Text: {clipboardText}"
+
+        content = note_page.content         
+        # TODO: Check if the page is created usinga a template we should simply 
+        # replace things around, or if we should provide our own modifications
+        if content.find("!!TITLE") >= 0:
+            content = content.replace("!!TITLE", option)
+            content = content.replace("!!NOTE", "")
+            content = content.replace("!!CONTEXT", context)
+        else:
+            note_page.title = option
+
         note_page.content = content
+        note_page.commit()
         note_page.show()
         return True
+
 
 #=============================================================================
 #===

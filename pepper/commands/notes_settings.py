@@ -5,7 +5,10 @@ Settings = {
     #command, and each value is the dictionary which gives name of the 
     #notebook and note of the section
     #'my note'        : {'notebook':'OneOffice', 'section':'Notes'}}
-    'notes' : {}
+    "notes":
+    {
+        "note" : {"notebook": "SPLM", "section": "Pepper"}
+    }
 }
 
 

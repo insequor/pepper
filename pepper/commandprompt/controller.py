@@ -64,7 +64,6 @@ class KeyboardListener(keyboard.Listener):
             case _:
                 ascii = "" 
         evt = KeyboardEvent(KeyID=data.vkCode, Ascii=ascii)  
-        logging.debug(f"KEYBOARD ({msg} {evt} {key})")
         match msg:
             case win32con.WM_KEYDOWN:
                 if self.KeyDown:
@@ -288,7 +287,6 @@ class CommandState (BaseState):
             When command state is activated it should get the command names from manager
             and update the options list
         '''
-        logging.debug("CommandState.activate()")
         super().activate(command)
         assert(command == None)
         assert(manager.command == None)
@@ -552,7 +550,6 @@ class Controller:
             manager.lastWindowHandle = -1
             #TODO: self.handler.deactivated()
             if self.keyboard_focused:
-                logging.debug(f"CANCEL: try to put the focus back {self.keyboard_focused}")
                 try:
                     self.keyboard_focused.set_focus()
                 except Exception:
@@ -565,19 +562,11 @@ class Controller:
     
     #---
     def activate(self, state, evt):
-        # TODO: wx.CallLater(1, self.__activateOnTimer, state, evt)
-        self.__activateOnTimer(state, evt)
-        logging.debug("after __activateOnTimer")
-
-    #---
-    def __activateOnTimer(self, *args, **kw):
-        logging.debug("__activateOnTimer")
         try:
             applications.setCurrent()
         except Exception as error:
             logging.exception(error)
 
-        state = args[0]
         if state is None:
             state = self.__commandState
             try:
@@ -592,21 +581,11 @@ class Controller:
         if self.__state:
             self.__state.deactivate()
         self.__state = state
-        logging.debug(f"Controller.activate({state})")
         self.__state.activate(manager.command)
-        # TODO: How this worked? self.handler.activated(self.__state)
         self.handler.onControllerMessage(ControllerHandler.activated)
-        logging.debug("DONE WITH ACTIVATE")
-    #---
-    def execute(self, entry, evt):
-        # TODO: wx.CallLater(1, self.__executeOnTimer, entry, evt)
-        self.__executeOnTimer(entry, evt)
-        # timer = threading.Timer(1, self.__executeOnTimer, args=(entry, evt))
-        # timer.start()
 
     #---
-    def __executeOnTimer(self, *args, **kw):
-        logging.debug(f"EXEcUTE COMMAND {args} {kw}")
+    def execute(self, entry, evt):
         try:
             if self.keyboard_focused is not None and self.keyboard_focused.handle is not None:
                 win32gui.SetForegroundWindow(self.keyboard_focused.handle)
@@ -615,8 +594,6 @@ class Controller:
         self.__inExecution = True
         try:
             deactivate = True
-            entry = args[0]
-            evt = args[1]
             assert(self.__state)
             
             commandName = self.__commandState.complatedEntry
@@ -657,7 +634,6 @@ class Controller:
                 self.__state = None
             manager.command = None
             manager.lastWindowHandle = -1
-            # TODO: self.handler.deactivated()
             self.handler.onControllerMessage(ControllerHandler.deactivated)
 
         self.__inExecution = False

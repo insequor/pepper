@@ -86,7 +86,7 @@ def main():
     logger.info("START")
 
     server_ip = "127.0.0.1"
-    server_port = 8080 
+    server_port = 8090 
     config = Config(f"{__name__}:app", host=server_ip, port=server_port, log_level="debug")
     instance = UvicornServer(config=config)
     instance.start()

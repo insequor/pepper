@@ -21,7 +21,6 @@ class Command:
     
     #--
     def __init__(self, ui, wx, manager):
-        logging.debug(f"BUILTINS: manager: {commander.manager}")
         self.ui = ui
         self.wx = wx
         self.manager = manager
@@ -44,8 +43,8 @@ class Command:
         
     #---
     def __exit(self):
-        # self.wx.GetApp().Exit()
         commander.manager.sendMessage("exit")
+    
     #---
     def __help(self):
         logging.warning("TODO: should disply help for selected command")

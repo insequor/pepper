@@ -24,7 +24,6 @@ class DefaultApplication:
     @selectedText.setter
     def selectedText(self, text):
         ui.putInClipboard(text)
-        logging.debug(f"Default application sending ctrl + v for text: {text}")
         keyboard.send("ctrl+v")
     
     @property

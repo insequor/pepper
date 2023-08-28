@@ -58,7 +58,7 @@ def setCurrent(hwnd = None):
         from msoutlook import MSOutlook
         current = MSOutlook(hwnd)
     elif wndClass == 'Framework::CFrame':
-        from msonenote import MSOneNote
+        from .msonenote import MSOneNote
         current = MSOneNote(hwnd)
     else:
         from .defaultapplication import DefaultApplication

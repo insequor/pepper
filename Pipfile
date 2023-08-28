@@ -16,6 +16,7 @@ expect-py = {git = "https://github.com/insequor/expect.py.git", ref = "expect"}
 pywin32 = "*"
 pywinauto = "*"
 pynput = "*"
+pytz = "*"
 
 [dev-packages]
 

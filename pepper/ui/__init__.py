@@ -19,8 +19,9 @@ import time
 import win32gui as gui
 import win32process
 import win32con
-import win32clipboard as clipboard
-
+# import win32clipboard as clipboard
+import win32clipboard
+from pywinauto import clipboard
 # Internal Imports
 
 
@@ -122,13 +123,10 @@ def getWindowPID(hwnd):
 def getClipboardText():
     '''
     '''
-    clipboard.OpenClipboard()
     try:
-        newFormat = clipboard.EnumClipboardFormats(newFormat)
-        if newFormat == win32con.CF_UNICODETEXT or newFormat == win32con.CF_TEXT:
-            return clipboard.GetClipboardData(newFormat)
+        return clipboard.GetData()  # default is unicode 
     finally:
-        clipboard.CloseClipboard()
+        pass
     
   
 #--- 

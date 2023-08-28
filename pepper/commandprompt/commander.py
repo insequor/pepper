@@ -7,6 +7,7 @@
 from importlib import reload, import_module
 from inspect import cleandoc
 import logging
+from multiprocessing.connection import PipeConnection
 import os
 from pathlib import Path
 import sys
@@ -82,7 +83,6 @@ class Manager(Singleton):
             cmd = self.__cmdMap[name]
         except KeyError:
             logging.warning('Command is not registered for: ' + name)
-            logging.debug(f"{self.__cmdMap}")
             cmd = None
         
         if cmd and hasattr(cmd, 'activated'):
@@ -97,7 +97,7 @@ class Manager(Singleton):
             
     #--
     def __init__(self, ui=None, wx=None, applications_deprecate=None):
-        self.connection = None 
+        self.connection: PipeConnection | None = None 
 
         self.ui = ui
         self.wx = wx
@@ -114,7 +114,6 @@ class Manager(Singleton):
         #- class, second is the instance. Instance is deleted when refresh command
         #- is received.
         #- 
-        # logging.debug("RESET COMDN LIST in Manager.__init__")
         self.__cmdList = []
         
         #Window handle which has the focus when controller is activated
@@ -167,7 +166,6 @@ class Manager(Singleton):
         '''
         Destroy all command instances so they can be re-created next time
         '''
-        # logging.debug("RESET COMDN LIST in Manager.refresh")
         self.__cmdList = []
         commands = getAvailableCommands(Manager.commandsFolder)
         for cmd in commands:
@@ -215,7 +213,7 @@ def getAvailableCommands(source: Path) -> list[Any]:
                     try:
                         commands.append(myModule.Command)
                     except AttributeError:
-                        pass 
+                        logging.debug(f"... SKIP COMMAND: {entry.stem} (no Command)") 
 
                 except Exception:
                     logging.exception("Exception during (re)loading command package")

@@ -17,6 +17,7 @@ import os
 from pathlib import Path
 
 # Third Party Imports
+from pywinauto import keyboard 
 
 # Internal Imports
 from pepper import applications
@@ -64,11 +65,9 @@ class Command:
     def execute(self, name, option):
         result = False
         try:
-            assert(applications.current)
             if name in self.__database:
                 val = self.__database[name]
-                logging.debug(f"ACCENTS.execute {name} => {val}")
-                applications.current.selectedText = val
+                keyboard.send_keys(val)
                 result = True
         except Exception as error:
             logging.exception(error)

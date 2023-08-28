@@ -132,25 +132,19 @@ class WebViewControllerHandler(ControllerHandler):
         self.__startIdx = -1 
     
     def onControllerMessage(self, msg):
-        logging.debug(f"CH.onControllerMessage: ({msg})")
         try:
             self.__commandLine = ""
             self.__lastEntry = ""
             match msg:
                 case ControllerHandler.activated:
                     self.__window.show()
-                    logging.debug("... show")
-                    logging.debug(f"... before on top update {self.__window.on_top}")
                     if not self.__window.on_top:
                         self.__window.on_top = True
-                    logging.debug("... set on top")
                     if 0:
                         
                         window = find_window(title="Pepper Quick Access")
-                        logging.debug(f"   found window: {window}")
                         BringWindowToTop(window)
                     self.loadHtml()
-                    logging.debug("... load html")
                 case ControllerHandler.deactivated:
                     self.__window.hide()
                 case _:
@@ -158,10 +152,9 @@ class WebViewControllerHandler(ControllerHandler):
         except Exception: 
             logging.exception("... exception")
         finally:    
-            logging.debug(f"... DONE CH.onControllerMessage: ({msg})")
+            pass
         
     def onTextChanged(self, command, option):
-        logging.debug(f"CH.onTextChanged({command}, {option})")
         if option:
             self.__commandLine = option
             self.__title = command + "..."
@@ -172,13 +165,11 @@ class WebViewControllerHandler(ControllerHandler):
         self.loadHtml()
 
     def onOptionsChanged(self, options):
-        # logging.debug(f"CH.onOptionsChanged({options})")
         self.__listLines = options 
         self.__startIdx = -1
         self.loadHtml()
 
     def onOptionSelectionChanged(self, options, selection):
-        logging.debug(f"CH.onOptionSelectionChanged({options}, {selection})")
         self.__selectedIdx = selection 
         self.loadHtml()
 
@@ -259,7 +250,7 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
     with open(Path(__file__).parent / "commands.html", "r") as file:
         html = file.read()
 
-    window = webview.create_window("Pepper Quick Access", html="", hidden=True, on_top=True)
+    window = webview.create_window("Pepper Quick Access", html="", hidden=False, on_top=True)
     Data.controllerHandler = WebViewControllerHandler(window)
     Data.controller = Controller(Data.controllerHandler)
     commander.manager.connection = connection
@@ -275,6 +266,8 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
         
             This function is executed in a new thread 
         """
+        window.hide()
+
         while True:
             msg = connection.recv()
             logger.debug(f"    Received: {msg}")
@@ -290,8 +283,6 @@ def startWebView(connection: PipeConnection, urlToLoad: str):
                 case "execute":
                     complatedEntry, key = msg["data"]
                     Data.controller.execute(complatedEntry, key)
-
-            logger.debug(f"    After handling the message: {msg}")
 
     webview.start(func=startCallback, args=(connection, window), debug=False)
 
